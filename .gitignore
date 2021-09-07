@@ -1,11 +1,6 @@
-
-# Created by https://www.toptal.com/developers/gitignore/api/vim,linux,macos,visualstudiocode,python,jupyternotebooks
-# Edit at https://www.toptal.com/developers/gitignore?templates=vim,linux,macos,visualstudiocode,python,jupyternotebooks
-
-### JupyterNotebooks ###
-# gitignore template for Jupyter Notebooks
-# website: http://jupyter.org/
-
+log
+output
+*.nc
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
