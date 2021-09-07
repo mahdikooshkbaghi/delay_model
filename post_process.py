@@ -2,10 +2,25 @@ import arviz as az
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import argparse
 
-res_az = az.from_netcdf('res_N50_C2_W20.nc')
+
+def allelic_manifold(alpha, c, Nx, Ny, w):
+    num = w**2+(alpha+1)*w
+    denum = num+alpha
+    x = num/denum + Nx
+    num = (c*w)**2+(c*w)*(alpha+1)
+    denum = num+alpha
+    y = num/denum + Ny
+    return np.log(x), np.log(y)
 
 
+parser = argparse.ArgumentParser(
+    description="Postprocess the netcfd file")
+parser.add_argument("-f", "--filename", type=str)
+args = parser.parse_args()
+
+res_az = az.from_netcdf(args.filename)
 # Training Data
 x = res_az['observed_data']['obs'][:, 0]
 y = res_az['observed_data']['obs'][:, 1]
@@ -21,7 +36,6 @@ plt.tight_layout()
 # Summary statistics
 summary_df = az.summary(res_az, kind='stats')
 print(summary_df)
-
 
 w_infer = summary_df[summary_df.index.str.startswith('w')].copy()
 w_infer.sort_values(by='mean', inplace=True, ascending=False)
@@ -62,5 +76,19 @@ for i in range(10):
         sns.kdeplot(pp_obs[k, i, :, 1],
                     ax=axs[1], c='C1', linewidth=0.1,
                     label=label)
+
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+ax.scatter(x, y, alpha=0.1)
+alpha_mean = np.exp(summary_df['mean']['log_alpha'])
+c_mean = np.exp(summary_df['mean']['log_c'])
+Nx_mean = np.exp(summary_df['mean']['log_nx'])
+Ny_mean = np.exp(summary_df['mean']['log_ny'])
+w_mean = np.sort(w_infer['mean'])
+x_mean, y_mean = allelic_manifold(alpha_mean, c_mean, Nx_mean, Ny_mean, w_mean)
+ax.plot(x_mean, y_mean, c='C1', linewidth=4)
+ax.set_xlabel(r'$\log \Psi_x$')
+ax.set_ylabel(r'$\log \Psi_y$')
+
+plt.tight_layout()
 
 plt.show()

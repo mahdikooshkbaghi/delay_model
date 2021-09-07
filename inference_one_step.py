@@ -43,7 +43,7 @@ def allelic_manifold(alpha, c, Nx, Ny, w):
 
 def model(len_ss, obs=None):
     log_alpha = numpyro.sample('log_alpha', dist.Uniform(-4, 4))
-    log_c = numpyro.sample('log_c',  dist.Normal(0, 1))
+    log_c = numpyro.sample('log_c',  dist.Uniform(-10, 0))
     log_w_mean = numpyro.sample('log_w_mean', dist.Uniform(-1, 1))
     log_w_sigma = numpyro.sample('log_w_sigma', dist.Gamma(concentration=1,
                                                            rate=1))
@@ -54,8 +54,10 @@ def model(len_ss, obs=None):
     c = numpyro.deterministic('c', jnp.exp(log_c))
     w = numpyro.deterministic('w', jnp.exp(
         log_w_mean + log_w_sigma * log_w_raw))
-    Nx = numpyro.sample('Nx',  dist.Exponential())
-    Ny = numpyro.sample('Ny',  dist.Exponential())
+    log_nx = numpyro.sample('log_nx',  dist.Uniform(-10, 0))
+    log_ny = numpyro.sample('log_ny',  dist.Uniform(-10, 0))
+    Nx = numpyro.deterministic('Nx',  jnp.exp(log_nx))
+    Ny = numpyro.deterministic('Ny',  jnp.exp(log_ny))
 
     num = w**2+(alpha+1)*w
     denum = num+alpha
