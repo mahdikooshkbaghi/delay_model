@@ -1,6 +1,11 @@
+# Code outputs, figures and elzar dump files
 log
 output
 *.nc
+*.pdf
+summary_statistics.csv.gz
+
+postprocess.ipynb
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
@@ -226,5 +231,3 @@ tags
 # Ignore all local history of files
 .history
 .ionide
-
-# End of https://www.toptal.com/developers/gitignore/api/vim,linux,macos,visualstudiocode,python,jupyternotebooks
