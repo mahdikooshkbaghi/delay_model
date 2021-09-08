@@ -35,7 +35,7 @@ y = res_az['observed_data']['obs'][:, 1]
 
 # Summary statistics
 summary_df = az.summary(res_az, kind='stats')
-summary_df.to_csv('summary_statistics.csv.gz', index=False, compression='gzip')
+summary_df.to_csv('summary_statistics.csv.gz',  compression='gzip')
 print(summary_df)
 
 w_infer = summary_df[summary_df.index.str.startswith('w')].copy()
