@@ -56,7 +56,6 @@ fig, axs = plt.subplots(2, 2, figsize=(12, 6))
 az.plot_trace(res_az, var_names=['alpha', 'c'],
               compact=True, combined=True, axes=axs)
 plt.tight_layout()
-plt.savefig('trace_chains.pdf')
 
 # Manifold plot
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -72,7 +71,6 @@ ax.set_xlabel(r'$\log \Psi_x$')
 ax.set_ylabel(r'$\log \Psi_y$')
 ax.legend()
 plt.tight_layout()
-plt.savefig('allelic_manifold.pdf')
 
 # Posteriors for parameters
 posteriors = res_az.posterior.stack(draws=("chain", "draw"))
@@ -88,7 +86,6 @@ for i in range(2):
         axs[i, j].set_yticks([])
 
 plt.tight_layout()
-plt.savefig('parameters_kdeplots.pdf')
 
 # Posterior Predictive plot
 # Stack all the chains
@@ -112,6 +109,5 @@ for i in range(100):
 axs[0].set_xlabel(r'$\Psi_x$')
 axs[1].set_xlabel(r'$\Psi_y$')
 plt.tight_layout()
-plt.savefig('Posterior_Predictive.pdf')
 
 plt.show()

@@ -43,7 +43,7 @@ def allelic_manifold(alpha, c, Nx, Ny, w):
 
 def model(len_ss, obs=None):
     log_alpha = numpyro.sample('log_alpha', dist.Uniform(-4, 4))
-    log_c = numpyro.sample('log_c',  dist.Uniform(-10, 0))
+    log_c = numpyro.sample('log_c',  dist.Uniform(-8, 0))
     log_w_mean = numpyro.sample('log_w_mean', dist.Uniform(-1, 1))
     log_w_sigma = numpyro.sample('log_w_sigma', dist.Gamma(concentration=1,
                                                            rate=1))
