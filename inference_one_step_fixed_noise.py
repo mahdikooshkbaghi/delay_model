@@ -3,6 +3,7 @@ import pymc3 as pm
 import pandas as pd
 from scipy import optimize, stats
 import argparse
+import arviz as az
 
 
 def get_mpsa_brca2_ikbkap_data():
@@ -67,23 +68,21 @@ if __name__ == "__main__":
 
     # Define pymc3 model
     with pm.Model() as model:
-        log_alpha = pm.Uniform('log_alpha', lower=-10, upper=0)
-        log_c = pm.Uniform('log_c', lower=-10, upper=1)
-        log_w_mean = pm.Normal('log_w_mean', mu=0, sigma=1)
-        log_w_sigma = pm.Gamma('log_w_sigma', mu=1, sigma=1)
-        log_w_raw = pm.Normal('log_w_raw', mu=0, shape=x.shape[0])
+        log_alpha = pm.Uniform('log_alpha', lower=-10, upper=4)
+        log_c = pm.Uniform('log_c', lower=-10, upper=-2)
+        log_w = pm.Uniform('log_w', lower=-12, upper=12, shape=x.shape[0])
         alpha = pm.Deterministic('alpha', pm.math.exp(log_alpha))
         c = pm.Deterministic('c', pm.math.exp(log_c))
-        w = pm.Deterministic('w', pm.math.exp(
-            log_w_mean + log_w_sigma * log_w_raw))
+        w = pm.Deterministic('w', 10**log_w)
+
         num = w**2+(alpha+1)*w
         denum = num+alpha
         mu_x = pm.math.log(num/denum + Nx)
         num = (c*w)**2+(c*w)*(alpha+1)
         denum = num+alpha
         mu_y = pm.math.log(num/denum + Ny)
-        x_likelihoods = pm.Normal('x_like', mu=mu_x, sigma=1, observed=x)
-        y_likelihoods = pm.Normal('y_like', mu=mu_y, sigma=1, observed=y)
+        x_likelihoods = pm.Normal('x_like', mu=mu_x, sigma=0.1, observed=x)
+        y_likelihoods = pm.Normal('y_like', mu=mu_y, sigma=0.1, observed=y)
 
     # Check model
     print(model.check_test_point())
@@ -101,3 +100,17 @@ if __name__ == "__main__":
                           tune=args.num_warmup, init='auto',
                           return_inferencedata=False,
                           random_seed=random_seed)
+
+    # Posterior Predictive
+    with model:
+        ppc = pm.sampling.fast_sample_posterior_predictive(trace=trace,
+                                                           random_seed=random_seed)
+
+    # Save arviz dataset
+    with model:
+        az_data = az.from_pymc3(trace,
+                                prior=priors_checks,
+                                posterior_predictive=ppc)
+
+    az_data.to_netcdf(
+        f'res_N{args.num_samples}_C{args.num_chains}_W{args.num_warmup}_fixed_noise.nc')
