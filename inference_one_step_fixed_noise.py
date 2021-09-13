@@ -2,17 +2,13 @@ import numpy as np
 import argparse
 from scipy import optimize
 from scipy import stats
-from numpy.random import default_rng
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 import arviz as az
 import pandas as pd
 import jax.numpy as jnp
 import jax.random as random
 import numpyro
 import numpyro.distributions as dist
-from numpyro.infer import MCMC, NUTS, HMC
-from numpyro.diagnostics import summary
+from numpyro.infer import MCMC, NUTS
 from numpyro.infer import Predictive
 
 
@@ -85,13 +81,9 @@ def model(len_ss, Nx, Ny, obs=None):
 
 def main(args):
     rng_jax = random.PRNGKey(0)
-    rng_numpy = default_rng(1234)
 
     # Get data
-    x_train, y_train = get_mpsa_brca2_ikbkap_data()
-    # Filter data
-    x = x_train
-    y = y_train
+    x, y = get_mpsa_brca2_ikbkap_data()
     Nx, Ny = backg_noise_model(jnp.exp(x), jnp.exp(y))
 
     kernel = NUTS(model, target_accept_prob=0.99)
