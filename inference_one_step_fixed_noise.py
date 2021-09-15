@@ -17,8 +17,8 @@ def get_mpsa_brca2_ikbkap_data():
     cond = (psi_df['brca2_9nt'] > 0) & (psi_df['ikbkap_9nt']) > 0
     psi_df = psi_df[cond]
     psi_df.reset_index(inplace=True, drop=True)
-    brca2_psi = psi_df['brca2_9nt'].values/100.
-    ikbkap_psi = psi_df['ikbkap_9nt'].values/100.
+    brca2_psi = psi_df['brca2_9nt'].values / 100.
+    ikbkap_psi = psi_df['ikbkap_9nt'].values / 100.
 
     return np.log(brca2_psi), np.log(ikbkap_psi)
 
@@ -36,12 +36,12 @@ def backg_noise_model(x_psi, y_psi):
 
 
 def allelic_manifold(alpha, c, Nx, Ny, w):
-    num = w**2+(alpha+1)*w
-    denum = num+alpha
-    x = num/denum + Nx
-    num = (c*w)**2+(c*w)*(alpha+1)
-    denum = num+alpha
-    y = num/denum + Ny
+    num = w**2 + (alpha + 1) * w
+    denum = num + alpha
+    x = num / denum + Nx
+    num = (c * w)**2 + (c * w) * (alpha + 1)
+    denum = num + alpha
+    y = num / denum + Ny
     return np.log(x), np.log(y)
 
 
@@ -53,10 +53,12 @@ if __name__ == "__main__":
                         nargs="?",
                         default=200,
                         type=int)
-    parser.add_argument("-w", "--num_warmup", nargs="?",
-                        default=1000, type=int)
-    parser.add_argument("-c", "--num_chains", nargs="?",
-                        default=4, type=int)
+    parser.add_argument("-w",
+                        "--num_warmup",
+                        nargs="?",
+                        default=1000,
+                        type=int)
+    parser.add_argument("-c", "--num_chains", nargs="?", default=4, type=int)
     args = parser.parse_args()
 
     random_seed = 1234
@@ -68,19 +70,19 @@ if __name__ == "__main__":
 
     # Define pymc3 model
     with pm.Model() as model:
-        log_alpha = pm.Uniform('log_alpha', lower=-10, upper=4)
-        log_c = pm.Uniform('log_c', lower=-10, upper=-2)
+        log_alpha = pm.Uniform('log_alpha', lower=-10, upper=10)
+        log_c = pm.Uniform('log_c', lower=-15, upper=-2)
         log_w = pm.Uniform('log_w', lower=-12, upper=12, shape=x.shape[0])
         alpha = pm.Deterministic('alpha', pm.math.exp(log_alpha))
         c = pm.Deterministic('c', pm.math.exp(log_c))
         w = pm.Deterministic('w', 10**log_w)
 
-        num = w**2+(alpha+1)*w
-        denum = num+alpha
-        mu_x = pm.math.log(num/denum + Nx)
-        num = (c*w)**2+(c*w)*(alpha+1)
-        denum = num+alpha
-        mu_y = pm.math.log(num/denum + Ny)
+        num = w**2 + (alpha + 1) * w
+        denum = num + alpha
+        mu_x = pm.math.log(num / denum + Nx)
+        num = (c * w)**2 + (c * w) * (alpha + 1)
+        denum = num + alpha
+        mu_y = pm.math.log(num / denum + Ny)
         x_likelihoods = pm.Normal('x_like', mu=mu_x, sigma=0.1, observed=x)
         y_likelihoods = pm.Normal('y_like', mu=mu_y, sigma=0.1, observed=y)
 
@@ -89,22 +91,24 @@ if __name__ == "__main__":
 
     # Prior predictive check
     with model:
-        priors_checks = pm.sample_prior_predictive(
-            samples=100, random_seed=random_seed)
+        priors_checks = pm.sample_prior_predictive(samples=100,
+                                                   random_seed=random_seed)
 
     # Run the NUTS MCMC
     with model:
         step = pm.NUTS(target_accept=0.99)
-        trace = pm.sample(draws=args.num_samples, step=step,
+        trace = pm.sample(draws=args.num_samples,
+                          step=step,
                           cores=args.num_chains,
-                          tune=args.num_warmup, init='auto',
+                          tune=args.num_warmup,
+                          init='auto',
                           return_inferencedata=False,
                           random_seed=random_seed)
 
     # Posterior Predictive
     with model:
-        ppc = pm.sampling.fast_sample_posterior_predictive(trace=trace,
-                                                           random_seed=random_seed)
+        ppc = pm.sampling.fast_sample_posterior_predictive(
+            trace=trace, random_seed=random_seed)
 
     # Save arviz dataset
     with model:
@@ -113,4 +117,5 @@ if __name__ == "__main__":
                                 posterior_predictive=ppc)
 
     az_data.to_netcdf(
-        f'res_N{args.num_samples}_C{args.num_chains}_W{args.num_warmup}_fixed_noise.nc')
+        f'res_N{args.num_samples}_C{args.num_chains}_W{args.num_warmup}_fixed_noise.nc'
+    )
